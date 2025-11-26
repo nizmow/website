@@ -19,8 +19,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
-        with:
-          node-version: 22
+      - uses: jdx/mise-action@v3
       - name: Install dependencies
         run: npm ci
       - name: Build quartz
