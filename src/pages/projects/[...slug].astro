@@ -1,0 +1,85 @@
+---
+import { getCollection, render } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+import { formatDate } from '../../lib/dates';
+
+const base = import.meta.env.BASE_URL;
+
+const statusLabel: Record<string, string> = {
+	active: 'Active',
+	paused: 'Paused',
+	done: 'Done',
+};
+
+export async function getStaticPaths() {
+	const projects = await getCollection('projects');
+	return projects.map((project) => ({ params: { slug: project.id }, props: { project } }));
+}
+
+const { project } = Astro.props;
+const { Content } = await render(project);
+---
+
+<Layout title={project.data.title} description={project.data.description}>
+	<article class="content">
+		<p><a href={`${base}projects/`}>← All projects</a></p>
+		<h1>{project.data.title}</h1>
+		<p class="meta">
+			<span class:list={['badge', project.data.status]}>{statusLabel[project.data.status]}</span>
+			{project.data.date && <span> · Started {formatDate(project.data.date)}</span>}
+			{project.data.tags.length > 0 && <span> · {project.data.tags.join(', ')}</span>}
+		</p>
+		<Content />
+	</article>
+</Layout>
+
+<style>
+	.meta {
+		color: var(--muted);
+		font-size: 0.9rem;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.badge {
+		font-size: 0.75rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		padding: 0.15rem 0.5rem;
+		border-radius: 999px;
+	}
+
+	.badge.active {
+		color: #0a7a2f;
+		background: #d9f2e1;
+	}
+
+	.badge.paused {
+		color: #7a5a00;
+		background: #f5e9c8;
+	}
+
+	.badge.done {
+		color: #333;
+		background: #e5e5e5;
+	}
+
+	@media (prefers-color-scheme: dark) {
+		.badge.active {
+			color: #7ee2a0;
+			background: #123322;
+		}
+
+		.badge.paused {
+			color: #e6c86a;
+			background: #332a10;
+		}
+
+		.badge.done {
+			color: #ccc;
+			background: #2a2a2a;
+		}
+	}
+</style>

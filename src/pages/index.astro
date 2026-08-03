@@ -1,11 +1,134 @@
 ---
-import Welcome from '../components/Welcome.astro';
+import { getCollection } from 'astro:content';
 import Layout from '../layouts/Layout.astro';
+import { formatDate, sortByDate } from '../lib/dates';
 
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+const base = import.meta.env.BASE_URL;
+const posts = (await getCollection('blog')).sort(sortByDate).slice(0, 3);
+
+const sections = [
+	{
+		href: `${base}blog/`,
+		title: 'Blog',
+		blurb: 'Short entries on whatever I\'m thinking about.',
+	},
+	{
+		href: `${base}notes/`,
+		title: 'Notes',
+		blurb: 'Evergreen notes and reference lists — things worth keeping around.',
+	},
+	{
+		href: `${base}projects/`,
+		title: 'Projects',
+		blurb: 'Things I\'m building and fixing, with their current state.',
+	},
+];
 ---
 
-<Layout>
-	<Welcome />
+<Layout title="nizmow — blog, notes & projects" description="Blog posts, notes, and projects by nizmow.">
+	<section class="content intro">
+		<h1>Hi, I'm nizmow.</h1>
+		<p>This is my little corner of the internet — blog posts, notes, and the projects I'm working on.</p>
+	</section>
+
+	<section class="sections">
+		{
+			sections.map((section) => (
+				<a class="card" href={section.href}>
+					<h2>{section.title}</h2>
+					<p>{section.blurb}</p>
+				</a>
+			))
+		}
+	</section>
+
+	<section class="content latest">
+		<h2>Latest from the blog</h2>
+		{
+			posts.length > 0 ? (
+				<ul class="post-list">
+					{
+						posts.map(
+							(post) => (
+								<li>
+									<a href={`${base}blog/${post.id}/`}>{post.data.title}</a>
+									<time datetime={post.data.date.toISOString()}>{formatDate(post.data.date)}</time>
+								</li>
+							),
+						)
+					}
+				</ul>
+			) : (
+				<p>No posts yet.</p>
+			)
+		}
+	</section>
 </Layout>
+
+<style>
+	.intro h1 {
+		margin-top: 0;
+		font-size: 2rem;
+	}
+
+	.sections {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+		gap: 1rem;
+		margin: 2rem 0;
+	}
+
+	.card {
+		display: block;
+		padding: 1rem 1.25rem;
+		border: 1px solid var(--border);
+		border-radius: 8px;
+		text-decoration: none;
+		color: inherit;
+	}
+
+	.card h2 {
+		margin: 0 0 0.25rem;
+		font-size: 1.1rem;
+		color: var(--accent);
+	}
+
+	.card p {
+		margin: 0;
+		font-size: 0.9rem;
+		color: var(--muted);
+	}
+
+	.card:hover {
+		border-color: var(--accent);
+	}
+
+	.post-list {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+	}
+
+	.post-list li {
+		display: flex;
+		justify-content: space-between;
+		gap: 1rem;
+		padding: 0.4rem 0;
+		border-bottom: 1px solid var(--border);
+	}
+
+	.post-list a {
+		color: var(--text);
+		text-decoration: none;
+	}
+
+	.post-list a:hover {
+		color: var(--accent);
+	}
+
+	.post-list time {
+		color: var(--muted);
+		font-size: 0.875rem;
+		white-space: nowrap;
+	}
+</style>

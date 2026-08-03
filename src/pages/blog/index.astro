@@ -1,0 +1,74 @@
+---
+import { getCollection } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+import { formatDate, sortByDate } from '../../lib/dates';
+
+const base = import.meta.env.BASE_URL;
+const posts = (await getCollection('blog')).sort(sortByDate);
+---
+
+<Layout title="Blog" description="Short entries by nizmow.">
+	<section class="content">
+		<h1>Blog</h1>
+		{
+			posts.length > 0 ? (
+				<ul class="post-list">
+					{
+						posts.map(
+							(post) => (
+								<li>
+									<div>
+										<a href={`${base}blog/${post.id}/`}>{post.data.title}</a>
+										{post.data.description && <p>{post.data.description}</p>}
+									</div>
+									<time datetime={post.data.date.toISOString()}>{formatDate(post.data.date)}</time>
+								</li>
+							),
+						)
+					}
+				</ul>
+			) : (
+				<p>No posts yet.</p>
+			)
+		}
+	</section>
+</Layout>
+
+<style>
+	.post-list {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+	}
+
+	.post-list li {
+		display: flex;
+		justify-content: space-between;
+		gap: 1rem;
+		padding: 0.75rem 0;
+		border-bottom: 1px solid var(--border);
+	}
+
+	.post-list a {
+		font-size: 1.1rem;
+		font-weight: 600;
+		color: var(--text);
+		text-decoration: none;
+	}
+
+	.post-list a:hover {
+		color: var(--accent);
+	}
+
+	.post-list p {
+		margin: 0.15rem 0 0;
+		font-size: 0.9rem;
+		color: var(--muted);
+	}
+
+	.post-list time {
+		color: var(--muted);
+		font-size: 0.875rem;
+		white-space: nowrap;
+	}
+</style>

@@ -1,0 +1,137 @@
+---
+import { getCollection } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+import { formatDate, sortByDate } from '../../lib/dates';
+
+const base = import.meta.env.BASE_URL;
+const projects = (await getCollection('projects')).sort(sortByDate);
+
+const statusLabel: Record<string, string> = {
+	active: 'Active',
+	paused: 'Paused',
+	done: 'Done',
+};
+---
+
+<Layout title="Projects" description="Projects I'm working on.">
+	<section class="content">
+		<h1>Projects</h1>
+		{
+			projects.length > 0 ? (
+				<ul class="project-list">
+					{
+						projects.map(
+							(project) => (
+								<li>
+									<a class="card" href={`${base}projects/${project.id}/`}>
+										<span class="card-head">
+											<span class="title">{project.data.title}</span>
+											<span class:list={['badge', project.data.status]}>{statusLabel[project.data.status]}</span>
+										</span>
+										<p>{project.data.description}</p>
+										{project.data.date && (
+											<span class="date">Started {formatDate(project.data.date)}</span>
+										)}
+									</a>
+								</li>
+							),
+						)
+					}
+				</ul>
+			) : (
+				<p>No projects yet.</p>
+			)
+		}
+	</section>
+</Layout>
+
+<style>
+	.project-list {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+		display: grid;
+		gap: 1rem;
+	}
+
+	.card {
+		display: block;
+		padding: 1rem 1.25rem;
+		border: 1px solid var(--border);
+		border-radius: 8px;
+		text-decoration: none;
+		color: inherit;
+	}
+
+	.card:hover {
+		border-color: var(--accent);
+	}
+
+	.card-head {
+		display: flex;
+		justify-content: space-between;
+		align-items: baseline;
+		gap: 1rem;
+	}
+
+	.title {
+		font-size: 1.1rem;
+		font-weight: 600;
+		color: var(--accent);
+	}
+
+	.badge {
+		font-size: 0.75rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		padding: 0.15rem 0.5rem;
+		border-radius: 999px;
+		white-space: nowrap;
+	}
+
+	.badge.active {
+		color: #0a7a2f;
+		background: #d9f2e1;
+	}
+
+	.badge.paused {
+		color: #7a5a00;
+		background: #f5e9c8;
+	}
+
+	.badge.done {
+		color: #333;
+		background: #e5e5e5;
+	}
+
+	@media (prefers-color-scheme: dark) {
+		.badge.active {
+			color: #7ee2a0;
+			background: #123322;
+		}
+
+		.badge.paused {
+			color: #e6c86a;
+			background: #332a10;
+		}
+
+		.badge.done {
+			color: #ccc;
+			background: #2a2a2a;
+		}
+	}
+
+	.card p {
+		margin: 0.5rem 0 0;
+		font-size: 0.9rem;
+		color: var(--muted);
+	}
+
+	.date {
+		display: inline-block;
+		margin-top: 0.5rem;
+		font-size: 0.8rem;
+		color: var(--muted);
+	}
+</style>
